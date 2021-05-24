@@ -30,7 +30,7 @@ for i in stock_options:
     dataf=pd.concat([dataf,dataf2],ignore_index=True)
 
 
-indicator_options=['ema200','bollinger','ichimoku_cloud','volatility_atr','macd','rsi']
+indicator_options=['ema200','bollinger','ichimoku_cloud','volatility_atr','macd','rsi','predict']
 
 app = dash.Dash()
 
