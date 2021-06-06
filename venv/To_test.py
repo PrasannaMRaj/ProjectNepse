@@ -1,22 +1,52 @@
 import pandas as pd
-from plotly.subplots import make_subplots
+import numpy as np
 
 
+def implement_bb_strategy(df_signal,stockticker):
 
-stock_options=['PRVU','UPPER','SHIVM','NEPSE_index']
-dataf=pd.DataFrame()
 
-for i in stock_options:
-    df1 = pd.read_csv(f'{i}.csv', parse_dates=True, index_col=0)
-    df1 = df1.set_index('date')
-    df1.index = pd.to_datetime(df1.index)
-    df1_date_unavailable = pd.date_range(start=df1.index[0],
-                                         end=df1.index[len(df1.index) - 1]).difference(df1.index)
-    valuedate = df1_date_unavailable.strftime('20%y-%m-%d').tolist()
-    dataf2=pd.DataFrame()
-    dataf2[i]=valuedate
+    buy_price = []
+    sell_price = []
+    bb_signal = []
+    signal = 0
+    print(len(df_signal))
 
-    dataf=pd.concat([dataf,dataf2],ignore_index=True)
+    for i in range(len(df_signal)-1):
+        i=i+1
+        #print (i)
+        if df_signal['adjclose'][i - 1] > df_signal['volatility_bbl_3'][i - 1] and df_signal['adjclose'][i] < df_signal['volatility_bbl_3'][i]:
+            if signal != 100:
+                buy_price.append(df_signal['adjclose'][i])
+                sell_price.append(np.nan)
+                signal = 100
+                bb_signal.append(signal)
+            else:
+                buy_price.append(np.nan)
+                sell_price.append(np.nan)
+                bb_signal.append(0)
+        elif df_signal['adjclose'][i - 1] < df_signal['volatility_bbh_3'][i - 1] and df_signal['adjclose'][i] > df_signal['volatility_bbh_3'][i]:
+            if signal != -100:
+                buy_price.append(np.nan)
+                sell_price.append(df_signal['adjclose'][i])
+                signal = -100
+                bb_signal.append(signal)
+            else:
+                buy_price.append(np.nan)
+                sell_price.append(np.nan)
+                bb_signal.append(0)
+        else:
+            buy_price.append(np.nan)
+            sell_price.append(np.nan)
+            bb_signal.append(0)
 
-print(dataf['NEPSE_index'].dropna(axis=0))
-#dataf.to_csv('datframetest.csv', index=True, encoding="utf-8")
+    return buy_price, sell_price, bb_signal
+
+
+stockticker="UPPER"
+df_signal = pd.read_csv(f'{stockticker}.csv', parse_dates=True, index_col=0)
+df_sig_value=pd.DataFrame()
+buy,sell,df_sig_value['signal']=implement_bb_strategy(df_signal,stockticker)
+
+
+Left_join = pd.concat([df_signal, df_sig_value], axis=1)
+Left_join.to_csv(f'{stockticker}.csv')
